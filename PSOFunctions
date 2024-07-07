@@ -1,0 +1,125 @@
+# Import necessary libraries
+import numpy as np
+
+# Example Objective Functions
+def sphere(x):
+    return np.sum(x**2)
+
+def rosenbrock(x):
+    return sum(100 * (x[i+1] - x[i]**2)**2 + (1 - x[i])**2 for i in range(len(x)-1))
+
+def step_2(x):
+    return np.sum(np.floor(x + 0.5)**2)
+
+# Add more functions following the pattern above...
+def quartic(x):
+    return np.sum(7 * x**4 - 10 * x**3 + 5 * x**2)
+
+def schwefel_2_21(x):
+    return np.sum(abs(x) + np.prod(abs(np.sin(x))))
+
+def schwefel_2_22(x):
+    return -np.sum(np.sin(np.sqrt(abs(x))))
+
+
+def foxholes(x):
+   return np.sum(
+      np.exp(-0.2 * np.sqrt(np.mean(x ** 2, axis=0))) + np.exp(np.sin(np.sqrt(np.mean(x ** 2, axis=0)))) + 0.1 *
+      x.shape[0])
+
+def kowalik(x):
+    return np.sum([i * (x[j] - 1)**2 + (1 - x[j])**2 for j in range(len(x)) for i in range(1, 6)])
+
+# Six-hump camel back Function
+def six_hump_camel_back(x):
+    return 4 * x[0]**2 - 2.1 * x[0]**4 + 1/3 * x[0]**6 + x[0] * x[1] - 4 * x[1]**2 + 4 * x[1]**4
+
+
+# # Hartman 6 Function
+# def hartman_6(x):
+#     return -np.sum(np.array([0.3979, 0.4899, 0.6759, 0.7699, 0.9149, 1.0472]) * np.exp(-np.sum(np.array([1, 10, 100, 1000, 10000, 100000]) * ((x - np.array([0.1312, 0.2329, 0.5358, 0.8775, 0.9991, 0.7743]))**2), axis=1)))
+
+# Levi Function N.13
+def levi_n13(x):
+    return np.sum(np.sin(np.sqrt(abs(x**2 + (1 + np.sin(10 * np.pi * x))**2))))
+
+# Rastrigin Function
+def rastrigin(x):
+    return np.sum(x**2 - 10 * np.cos(2 * np.pi * x) + 10)
+
+# Griewank Function
+def griewank(x):
+    return np.sum(x**2 / 4000 - np.cos(x) + 1)
+
+# Ackley 1 Function
+def ackley_1(x):
+    return -20 * np.exp(-0.2 * np.sqrt(np.mean(x**2))) - np.exp(np.mean(np.cos(2 * np.pi * x))) + 20 + np.e
+
+
+# def hartman_3(x):
+#     x = np.atleast_2d(x)  # Ensure x is a 2D array for proper broadcasting
+#     weights = np.array([0.3689, 0.4699, 1.0472, 1.5701, 0.7473])[:x.shape[1]]
+#     return -np.sum(weights * np.exp(-np.sum(np.array([1, 10, 100, 1000]) * (x.T - np.array([0.1312, 0.2329, 0.5358, 0.8775]))**2, axis=1)))
+
+def run_pso(obj_func, n_particles=30, n_dimensions=2, max_iter=100, bounds=(-10, 10)):
+    particles = np.random.uniform(bounds[0], bounds[1], (n_particles, n_dimensions))
+    velocity = np.zeros((n_particles, n_dimensions))
+    pbest = np.copy(particles)
+    pbest_values = np.array([obj_func(x) for x in particles])
+    gbest_value = np.min(pbest_values)
+    gbest = particles[np.argmin(pbest_values)]
+
+    for _ in range(max_iter):
+        for j in range(n_particles):
+            # PSO velocity and position updates (simplified)
+            inertia_weight = 0.5
+            cognitive_weight = 1.5
+            social_weight = 1.5
+
+            # Update velocity
+            velocity[j] = inertia_weight * velocity[j] + \
+                           cognitive_weight * np.random.rand() * (pbest[j] - particles[j]) + \
+                           social_weight * np.random.rand() * (gbest - particles[j])
+
+            # Update position
+            particles[j] = particles[j] + velocity[j]
+
+            # Update personal best if needed
+            if obj_func(particles[j]) < obj_func(pbest[j]):
+                pbest[j] = particles[j]
+
+        # Update global best
+        current_best_values = np.array([obj_func(p) for p in particles])
+        if np.min(current_best_values) < gbest_value:
+            gbest_value = np.min(current_best_values)
+            gbest = particles[np.argmin(current_best_values)]
+
+    return gbest, gbest_value
+
+
+# Objective Functions List
+functions = {
+    'Sphere': sphere,
+    'Rosenbrock': rosenbrock,
+    'Step 2': step_2,
+    'Quartic': quartic,
+    'Schwefel 2.21': schwefel_2_21,
+    'Schwefel 2.22': schwefel_2_22,
+    'Foxholes': foxholes,
+    'Kowalik':kowalik,
+    'Six_hump_camel_back':six_hump_camel_back,
+    # 'hartman_3':hartman_3,
+    # 'hartman_6':hartman_6,
+    'levi_n13':levi_n13,
+    'rastrigin':rastrigin,
+    'griewank':griewank,
+    'ackley_1':ackley_1
+
+
+}
+
+# Running PSO for Each Function
+for name, func in functions.items():
+    gbest, gbest_value = run_pso(func)
+    print(f"{name} - Best Position: {gbest}, Best Value: {gbest_value}")
+ 
